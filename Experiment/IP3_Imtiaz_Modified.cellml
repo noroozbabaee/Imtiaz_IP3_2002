@@ -1,0 +1,536 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="IP3_Imtiaz_Modified" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+    <units name="millimolar">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-1" units="litre"/>
+    </units>
+    <units name="time_units">
+        <unit prefix="milli" units="second"/>
+    </units>
+    <units name="per_time_units">
+        <unit exponent="-1" units="time_units"/>
+    </units>
+    <units name="millimolar_per_time_units">
+        <unit units="per_time_units"/>
+        <unit units="millimolar"/>
+    </units>
+    <units name="conductance_units">
+        <unit prefix="nano" units="siemens"/>
+    </units>
+    <units name="current_units">
+        <unit units="voltage_units"/>
+        <unit units="conductance_units"/>
+    </units>
+    <units name="voltage_units">
+        <unit prefix="milli" units="volt"/>
+    </units>
+    <units name="capacitance_units">
+        <unit prefix="pico" units="farad"/>
+    </units>
+    <component name="Time">
+        <variable name="time" private_interface="out" public_interface="out" units="time_units"/>
+    </component>
+    <component name="vm">
+        <variable initial_value="-65.09" name="v_init" units="voltage_units"/>
+        <variable initial_value="v_init" name="vm" private_interface="out" units="voltage_units"/>
+        <variable initial_value="17" name="cm" units="capacitance_units"/>
+        <variable name="time" private_interface="out" public_interface="in" units="time_units"/>
+        <variable name="I_ca" private_interface="in" units="current_units"/>
+        <variable name="I_i" private_interface="in" units="current_units"/>
+        <variable name="I_stim" units="current_units"/>
+        <variable initial_value="0" name="I_clamp0" units="current_units"/>
+        <variable initial_value="0" name="I_clamp1" units="current_units"/>
+        <variable initial_value="0" name="I_clamp2" units="current_units"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>I_stim</ci>
+                <piecewise>
+                    <piece>
+                        <ci>I_clamp0</ci>
+                        <apply>
+                            <leq/>
+                            <ci>time</ci>
+                            <cn cellml:units="time_units">100000</cn>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <ci>I_clamp1</ci>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>time</ci>
+                                <cn cellml:units="time_units">100000</cn>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>time</ci>
+                                <cn cellml:units="time_units">200000</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <ci>I_clamp2</ci>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>time</ci>
+                                <cn cellml:units="time_units">200000</cn>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>time</ci>
+                                <cn cellml:units="time_units">300000</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>time</ci>
+                    </bvar>
+                    <ci>vm</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <plus/>
+                                <ci>I_ca</ci>
+                                <ci>I_i</ci>
+                            </apply>
+                            <ci>I_stim</ci>
+                        </apply>
+                    </apply>
+                    <ci>cm</ci>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <component name="I_i">
+        <variable name="I_i" public_interface="out" units="current_units"/>
+        <variable name="z" private_interface="out" public_interface="in" units="millimolar"/>
+        <variable initial_value="-67.2" name="Ei" units="voltage_units"/>
+        <variable initial_value="1.12" name="g_i" units="conductance_units"/>
+        <variable name="vm" private_interface="out" public_interface="in" units="voltage_units"/>
+        <variable name="time" private_interface="out" public_interface="in" units="time_units"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>I_i</ci>
+                <apply>
+                    <times/>
+                    <ci>g_i</ci>
+                    <apply>
+                        <minus/>
+                        <ci>vm</ci>
+                        <ci>Ei</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <component name="I_ca">
+        <variable name="I_ca" public_interface="out" units="current_units"/>
+        <variable name="z" public_interface="in" units="millimolar"/>
+        <variable initial_value="-20" name="Eca" units="voltage_units"/>
+        <variable initial_value="4" name="g_m_ca" units="conductance_units"/>
+        <variable initial_value="4" name="q" units="dimensionless"/>
+        <variable initial_value="1.4" name="kca" units="millimolar"/>
+        <variable name="vm" private_interface="out" public_interface="in" units="voltage_units"/>
+        <variable name="g_ca" units="conductance_units"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>g_ca</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>g_m_ca</ci>
+                        <apply>
+                            <power/>
+                            <ci>z</ci>
+                            <ci>q</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <power/>
+                            <ci>kca</ci>
+                            <ci>q</ci>
+                        </apply>
+                        <apply>
+                            <power/>
+                            <ci>z</ci>
+                            <ci>q</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>I_ca</ci>
+                <apply>
+                    <times/>
+                    <ci>g_ca</ci>
+                    <apply>
+                        <minus/>
+                        <ci>vm</ci>
+                        <ci>Eca</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <component name="ca">
+        <variable initial_value="4.439" name="z_init" units="millimolar"/>
+        <variable initial_value="z_init" name="z" public_interface="out" units="millimolar"/>
+        <variable initial_value="0.475" name="y_init" units="millimolar"/>
+        <variable initial_value="y_init" name="y" public_interface="out" units="millimolar"/>
+        <variable initial_value="0.397" name="p_ip3_init" units="millimolar"/>
+        <variable initial_value="p_ip3_init" name="p_ip3" public_interface="out" units="millimolar"/>
+        <variable name="time" public_interface="in" units="time_units"/>
+        <variable name="vm" private_interface="out" public_interface="in" units="voltage_units"/>
+        <variable initial_value="0.0002042" name="v0" units="millimolar_per_time_units"/>
+        <variable initial_value="0.0002042" name="v1" units="per_time_units"/>
+        <variable initial_value="0.003" name="vm2" units="millimolar_per_time_units"/>
+        <variable initial_value="2" name="n" units="dimensionless"/>
+        <variable initial_value="1" name="k2" units="millimolar"/>
+        <variable initial_value="0.39" name="vm3" units="millimolar_per_time_units"/>
+        <variable initial_value="4" name="w" units="dimensionless"/>
+        <variable initial_value="0.9" name="ka" units="millimolar"/>
+        <variable initial_value="4" name="m" units="dimensionless"/>
+        <variable initial_value="2" name="kr" units="millimolar"/>
+        <variable initial_value="4" name="o" units="dimensionless"/>
+        <variable initial_value="0.65" name="kp" units="millimolar"/>
+        <variable name="vin" units="millimolar_per_time_units"/>
+        <variable name="v2" units="millimolar_per_time_units"/>
+        <variable name="v3" units="millimolar_per_time_units"/>
+        <variable initial_value="0.00006" name="kf" units="per_time_units"/>
+        <variable initial_value="0.0006" name="K" units="per_time_units"/>
+        <variable initial_value="0.0048" name="b_ip3" units="millimolar_per_time_units"/>
+        <variable initial_value="0.054" name="eps_ip3" units="per_time_units"/>
+        <!--not data from table, 0.058 for second figure* 0.054 for second figure-->
+        <variable initial_value="0.00012" name="vm4" units="millimolar_per_time_units"/>
+        <variable initial_value="0.5" name="k4" units="millimolar"/>
+        <variable initial_value="8" name="u" units="dimensionless"/>
+        <variable initial_value="0.0274" name="p_mv" units="millimolar_per_time_units"/>
+        <!--not data from table DIRECTLY CHANGE vm VOLTAGE-->
+        <variable initial_value="-58" name="kv" units="voltage_units"/>
+        <variable initial_value="8" name="r" units="dimensionless"/>
+        <variable name="pv" units="millimolar_per_time_units"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>pv</ci>
+                <apply>
+                    <times/>
+                    <ci>p_mv</ci>
+                    <apply>
+                        <minus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <divide/>
+                            <apply>
+                                <power/>
+                                <ci>vm</ci>
+                                <ci>r</ci>
+                            </apply>
+                            <apply>
+                                <plus/>
+                                <apply>
+                                    <power/>
+                                    <ci>kv</ci>
+                                    <ci>r</ci>
+                                </apply>
+                                <apply>
+                                    <power/>
+                                    <ci>vm</ci>
+                                    <ci>r</ci>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>vin</ci>
+                <apply>
+                    <plus/>
+                    <ci>v0</ci>
+                    <apply>
+                        <times/>
+                        <ci>v1</ci>
+                        <ci>p_ip3</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>v2</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>vm2</ci>
+                        <apply>
+                            <power/>
+                            <ci>z</ci>
+                            <ci>n</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <power/>
+                            <ci>k2</ci>
+                            <ci>n</ci>
+                        </apply>
+                        <apply>
+                            <power/>
+                            <ci>z</ci>
+                            <ci>n</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>v3</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <divide/>
+                                    <apply>
+                                        <times/>
+                                        <ci>vm3</ci>
+                                        <apply>
+                                            <power/>
+                                            <ci>z</ci>
+                                            <ci>w</ci>
+                                        </apply>
+                                    </apply>
+                                    <apply>
+                                        <plus/>
+                                        <apply>
+                                            <power/>
+                                            <ci>ka</ci>
+                                            <ci>w</ci>
+                                        </apply>
+                                        <apply>
+                                            <power/>
+                                            <ci>z</ci>
+                                            <ci>w</ci>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                                <apply>
+                                    <power/>
+                                    <ci>y</ci>
+                                    <ci>m</ci>
+                                </apply>
+                            </apply>
+                            <apply>
+                                <plus/>
+                                <apply>
+                                    <power/>
+                                    <ci>kr</ci>
+                                    <ci>m</ci>
+                                </apply>
+                                <apply>
+                                    <power/>
+                                    <ci>y</ci>
+                                    <ci>m</ci>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <power/>
+                            <ci>p_ip3</ci>
+                            <ci>o</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <power/>
+                            <ci>kp</ci>
+                            <ci>o</ci>
+                        </apply>
+                        <apply>
+                            <power/>
+                            <ci>p_ip3</ci>
+                            <ci>o</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>time</ci>
+                    </bvar>
+                    <ci>p_ip3</ci>
+                </apply>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <minus/>
+                            <ci>b_ip3</ci>
+                            <apply>
+                                <times/>
+                                <ci>eps_ip3</ci>
+                                <ci>p_ip3</ci>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <divide/>
+                            <apply>
+                                <times/>
+                                <ci>vm4</ci>
+                                <apply>
+                                    <power/>
+                                    <ci>p_ip3</ci>
+                                    <ci>u</ci>
+                                </apply>
+                            </apply>
+                            <apply>
+                                <plus/>
+                                <apply>
+                                    <power/>
+                                    <ci>k4</ci>
+                                    <ci>u</ci>
+                                </apply>
+                                <apply>
+                                    <power/>
+                                    <ci>p_ip3</ci>
+                                    <ci>u</ci>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>pv</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>time</ci>
+                    </bvar>
+                    <ci>y</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <ci>v2</ci>
+                        <ci>v3</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>kf</ci>
+                        <ci>y</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>time</ci>
+                    </bvar>
+                    <ci>z</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>vin</ci>
+                            <ci>v2</ci>
+                        </apply>
+                        <ci>v3</ci>
+                        <apply>
+                            <times/>
+                            <ci>kf</ci>
+                            <ci>y</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>K</ci>
+                        <ci>z</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <group>
+        <relationship_ref relationship="encapsulation"/>
+        <component_ref component="vm">
+            <component_ref component="I_ca"/>
+            <component_ref component="ca"/>
+        </component_ref>
+    </group>
+    <connection>
+        <map_components component_1="I_i" component_2="vm"/>
+        <map_variables variable_1="vm" variable_2="vm"/>
+        <map_variables variable_1="I_i" variable_2="I_i"/>
+        <map_variables variable_1="time" variable_2="time"/>
+    </connection>
+    <connection>
+        <map_components component_1="I_i" component_2="ca"/>
+        <map_variables variable_1="z" variable_2="z"/>
+    </connection>
+    <connection>
+        <map_components component_1="I_ca" component_2="vm"/>
+        <map_variables variable_1="vm" variable_2="vm"/>
+        <map_variables variable_1="I_ca" variable_2="I_ca"/>
+    </connection>
+    <connection>
+        <map_components component_1="I_ca" component_2="ca"/>
+        <map_variables variable_1="z" variable_2="z"/>
+    </connection>
+    <connection>
+        <map_components component_1="ca" component_2="vm"/>
+        <map_variables variable_1="vm" variable_2="vm"/>
+        <map_variables variable_1="time" variable_2="time"/>
+    </connection>
+    <connection>
+        <map_components component_1="Time" component_2="vm"/>
+        <map_variables variable_1="time" variable_2="time"/>
+    </connection>
+</model>
